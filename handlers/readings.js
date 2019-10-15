@@ -38,26 +38,27 @@ const post = async ({ body }) => {
 
   try {
     const { temperature, cough, feverInLast5Days } = requestBody;
-    // new readings id
-    const id = uuid.v4();
+
+    // new readings data object
+    const readingData = {
+      id: uuid.v4(),
+      temperature,
+      cough: !!cough, // converted to a boolean
+      feverInLast5Days: !!feverInLast5Days, // converted to a boolean
+      isFlu: isFlu(temperature, cough, feverInLast5Days), // checks if the patience has got a flu
+      createdAt: new Date().getTime()
+    };
 
     // try to insert the new reading in the DB
     await dynamoDB.put({
       TableName: process.env.READINGS_TABLE,
-      Item: {
-        id,
-        temperature,
-        cough: !!cough, // converted to a boolean
-        feverInLast5Days: !!feverInLast5Days, // converted to a boolean
-        isFlu: isFlu(temperature, cough, feverInLast5Days), // checks if the patience has got a flu
-        createdAt: new Date().getTime()
-      }
+      Item: readingData
     }).promise();
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id })
+      body: JSON.stringify(readingData)
     };
   } catch (err) {
     return {
