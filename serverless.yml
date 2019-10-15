@@ -1,21 +1,56 @@
-service: feebris-api-service
+service: feebris-service
+
 provider:
   name: aws
   runtime: nodejs10.x
   region: eu-west-2
-
-plugins:
-  - serverless-offline
-
-custom:
-  serverless-offline:
-    port: 4000
+  stage: dev
+  environment:
+    READINGS_TABLE: ${self:service}-${opt:stage, self:provider.stage}-readings
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource: "*"
 
 functions:
   selftest:
-    handler: handler.selftest
+    handler: handler.selftest.get
     description: API Self test
     events:
       - http:
           path: /selftest
           method: get
+  readingsPost:
+    handler: handler.readings.post
+    description: Posts readings data to the DB
+    events:
+      - http:
+          path: /readings
+          method: post
+  readingsScan:
+    handler: handler.readings.get
+    description: Gets readings data from the DB
+    events:
+      - http:
+          path: /readings
+          method: get
+
+resources:
+  Resources:
+    ReadingsDynamoDbTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.READINGS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1

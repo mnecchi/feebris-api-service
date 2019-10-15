@@ -1,9 +1,6 @@
 'use strict';
 
-module.exports.selftest = async event => ({
-  statusCode: 200,
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ success: true })
-});
+const selftest = require('./handlers/selftest');
+const readings = require('./handlers/readings');
+
+module.exports = { selftest, readings };
