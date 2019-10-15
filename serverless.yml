@@ -1,0 +1,21 @@
+service: feebris-api-service
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: eu-west-2
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    port: 4000
+
+functions:
+  selftest:
+    handler: handler.selftest
+    description: API Self test
+    events:
+      - http:
+          path: /selftest
+          method: get
